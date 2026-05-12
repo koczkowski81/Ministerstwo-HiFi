@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ministerstwo Hi-Fi • Sklep</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto+Slab:wght@300;400;500&display=swap');
+        body {
+            font-family: 'Roboto Slab', serif;
+            background-color: #0a0a0a;
+            color: #f5f5f5;
+        }
+        .gold-accent { color: #f5b800; }
+        .card {
+            transition: all 0.4s ease;
+            background-color: #111111;
+            border: 1px solid #f5b80022;
+        }
+        .card:hover {
+            transform: translateY(-10px);
+            border-color: #f5b800;
+            box-shadow: 0 25px 50px -12px rgb(245 184 0 / 0.5);
+        }
+    </style>
+</head>
+<body>
+
+<header class="bg-black border-b-4 border-[#f5b800] py-6">
+    <div class="max-w-6xl mx-auto px-6 flex justify-between items-center">
+        <div class="flex items-center gap-5">
+            <img src="logo.png" alt="Logo" class="h-24 w-auto">
+            <div>
+                <h1 class="text-4xl font-bold gold-accent" style="font-family: 'Playfair Display', serif;">MINISTERSTWO</h1>
+                <p class="text-sm tracking-[4px]">HI-FI</p>
+            </div>
+        </div>
+        <a href="tel:+48797996044" class="bg-[#f5b800] text-black px-8 py-3 rounded-xl font-bold">+48 797 996 044</a>
+    </div>
+</header>
+
+<section class="py-20">
+    <div class="max-w-6xl mx-auto px-6">
+        <h2 class="text-5xl text-center gold-accent mb-16" style="font-family: 'Playfair Display', serif;">Aktualne Oferty</h2>
+        
+        <div id="offers" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+    </div>
+</section>
+
+<script>
+// Twój arkusz Google
+const SHEET_ID = "1Fv0oPge2Bj9XBap9ks_YSeG_C1fa15DRhED7bybkSp4";
+const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+
+async function loadOffers() {
+    const container = document.getElementById('offers');
+    container.innerHTML = `<p class="col-span-3 text-center text-xl">Ładowanie ofert...</p>`;
+
+    try {
+        const response = await fetch(URL);
+        const text = await response.text();
+        const json = JSON.parse(text.substring(47).slice(0, -2));
+        
+        const rows = json.table.rows.slice(1); // pomijamy nagłówek
+
+        container.innerHTML = '';
+
+        rows.forEach(row => {
+            const title = row.c[1]?.v || '';
+            const desc = row.c[2]?.v || '';
+            const price = row.c[3]?.v || '';
+            const img = row.c[4]?.v || 'https://picsum.photos/600/400';
+            const olx = row.c[5]?.v || '#';
+
+            const cardHTML = `
+                <div class="card rounded-3xl overflow-hidden h-full flex flex-col">
+                    <img src="${img}" class="w-full h-56 object-cover" alt="${title}">
+                    <div class="p-8 flex-1 flex flex-col">
+                        <h3 class="text-2xl font-bold mb-3">${title}</h3>
+                        <p class="text-amber-300 mb-6 flex-1">${desc}</p>
+                        
+                        <div class="mt-auto">
+                            <div class="flex justify-between items-end mb-6">
+                                <div>
+                                    <span class="text-sm opacity-70">Cena</span><br>
+                                    <span class="text-3xl font-bold gold-accent">${price} zł</span>
+                                </div>
+                                <span class="text-green-400 font-medium">• Dostępny</span>
+                            </div>
+                            
+                            <a href="${olx}" target="_blank" 
+                               class="block w-full bg-[#f5b800] hover:bg-amber-300 text-black text-center py-5 rounded-2xl font-bold text-lg transition">
+                                KUP NA OLX →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += cardHTML;
+        });
+
+        if (rows.length === 0) {
+            container.innerHTML = `<p class="col-span-3 text-center text-xl">Brak ofert na razie...</p>`;
+        }
+    } catch (error) {
+        console.error(error);
+        container.innerHTML = `<p class="text-red-400 text-center">Błąd ładowania ofert. Odśwież stronę.</p>`;
+    }
+}
+
+loadOffers();
+</script>
+
+</body>
+</html>
